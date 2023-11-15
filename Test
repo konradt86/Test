@@ -1,40 +1,33 @@
-Jeśli w Jupyter Notebook otrzymujesz tylko komunikat "Oba procesy zakończone", to może to być spowodowane faktem, że procesy potomne nie są w stanie korzystać z `print` w taki sam sposób, jak w przypadku prostego skryptu uruchamianego w konsoli. W środowisku Jupyter Notebook `print` może działać inaczej, a wyniki z procesów potomnych nie są zawsze widoczne.
-
-Aby uzyskać lepsze zrozumienie tego, co dzieje się wewnątrz procesów potomnych w Jupyter Notebook, można użyć `Queue` lub `Pipe` do przekazywania danych z procesów potomnych do procesu głównego, a następnie wypisać te dane.
-
-Przykład z użyciem `Queue`:
+Moduł `multiprocess` jest alternatywą dla modułu `multiprocessing` w Pythonie, która ma podobne API. Poniżej znajdziesz kod zapisujący zawartość komórki jako plik `.py` przy użyciu modułu `multiprocess`:
 
 ```python
-import multiprocessing
+from multiprocess import Process, Queue
 import time
 
 def process_function(process_num, queue):
-    """Funkcja wykonywana przez każdy proces."""
     queue.put(f'Rozpoczęcie procesu {process_num}')
     time.sleep(2)  # Symulacja długotrwałej operacji
     queue.put(f'Zakończenie procesu {process_num}')
 
 if __name__ == '__main__':
-    # Tworzymy kolejkę do komunikacji między procesami
-    result_queue = multiprocessing.Queue()
-
-    # Tworzymy dwa procesy, przekazując kolejkę jako argument
-    process1 = multiprocessing.Process(target=process_function, args=(1, result_queue))
-    process2 = multiprocessing.Process(target=process_function, args=(2, result_queue))
-
-    # Startujemy oba procesy jednocześnie
+    result_queue = Queue()
+    process1 = Process(target=process_function, args=(1, result_queue))
+    process2 = Process(target=process_function, args=(2, result_queue))
     process1.start()
     process2.start()
-
-    # Czekamy na zakończenie obu procesów
     process1.join()
     process2.join()
 
-    # Odczytujemy wyniki z kolejki i wypisujemy je
     while not result_queue.empty():
         print(result_queue.get())
 
     print('Oba procesy zakończone.')
 ```
 
-W ten sposób otrzymasz wyniki z obu procesów w procesie głównym i będziesz w stanie je wyświetlić w Jupyter Notebook.
+Tutaj używam `multiprocess` zamiast `multiprocessing`. Proszę upewnić się, że moduł `multiprocess` jest zainstalowany w Twoim środowisku, możesz zainstalować go za pomocą:
+
+```bash
+pip install multiprocess
+```
+
+Następnie, po wykonaniu tej komórki w Jupyter Notebook, możesz sprawdzić, czy plik `moj_kod.py` został utworzony i zawiera oczekiwany kod.
