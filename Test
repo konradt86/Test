@@ -1,19 +1,26 @@
-Oto przykład prostego programu, w którym używane są dwa procesy jednocześnie w Pythonie:
+Jeśli w Jupyter Notebook otrzymujesz tylko komunikat "Oba procesy zakończone", to może to być spowodowane faktem, że procesy potomne nie są w stanie korzystać z `print` w taki sam sposób, jak w przypadku prostego skryptu uruchamianego w konsoli. W środowisku Jupyter Notebook `print` może działać inaczej, a wyniki z procesów potomnych nie są zawsze widoczne.
+
+Aby uzyskać lepsze zrozumienie tego, co dzieje się wewnątrz procesów potomnych w Jupyter Notebook, można użyć `Queue` lub `Pipe` do przekazywania danych z procesów potomnych do procesu głównego, a następnie wypisać te dane.
+
+Przykład z użyciem `Queue`:
 
 ```python
 import multiprocessing
 import time
 
-def process_function(process_num):
+def process_function(process_num, queue):
     """Funkcja wykonywana przez każdy proces."""
-    print(f'Rozpoczęcie procesu {process_num}')
+    queue.put(f'Rozpoczęcie procesu {process_num}')
     time.sleep(2)  # Symulacja długotrwałej operacji
-    print(f'Zakończenie procesu {process_num}')
+    queue.put(f'Zakończenie procesu {process_num}')
 
 if __name__ == '__main__':
-    # Tworzymy dwa procesy
-    process1 = multiprocessing.Process(target=process_function, args=(1,))
-    process2 = multiprocessing.Process(target=process_function, args=(2,))
+    # Tworzymy kolejkę do komunikacji między procesami
+    result_queue = multiprocessing.Queue()
+
+    # Tworzymy dwa procesy, przekazując kolejkę jako argument
+    process1 = multiprocessing.Process(target=process_function, args=(1, result_queue))
+    process2 = multiprocessing.Process(target=process_function, args=(2, result_queue))
 
     # Startujemy oba procesy jednocześnie
     process1.start()
@@ -23,7 +30,11 @@ if __name__ == '__main__':
     process1.join()
     process2.join()
 
+    # Odczytujemy wyniki z kolejki i wypisujemy je
+    while not result_queue.empty():
+        print(result_queue.get())
+
     print('Oba procesy zakończone.')
 ```
 
-Ten kod tworzy dwie instancje procesów (`process1` i `process2`) i uruchamia je równolegle. Każdy z procesów wykonuje funkcję `process_function`. Po uruchomieniu obu procesów, program czeka na ich zakończenie za pomocą `join()`.
+W ten sposób otrzymasz wyniki z obu procesów w procesie głównym i będziesz w stanie je wyświetlić w Jupyter Notebook.
