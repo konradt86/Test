@@ -1,1 +1,29 @@
-dupa 
+Oto przykład prostego programu, w którym używane są dwa procesy jednocześnie w Pythonie:
+
+```python
+import multiprocessing
+import time
+
+def process_function(process_num):
+    """Funkcja wykonywana przez każdy proces."""
+    print(f'Rozpoczęcie procesu {process_num}')
+    time.sleep(2)  # Symulacja długotrwałej operacji
+    print(f'Zakończenie procesu {process_num}')
+
+if __name__ == '__main__':
+    # Tworzymy dwa procesy
+    process1 = multiprocessing.Process(target=process_function, args=(1,))
+    process2 = multiprocessing.Process(target=process_function, args=(2,))
+
+    # Startujemy oba procesy jednocześnie
+    process1.start()
+    process2.start()
+
+    # Czekamy na zakończenie obu procesów
+    process1.join()
+    process2.join()
+
+    print('Oba procesy zakończone.')
+```
+
+Ten kod tworzy dwie instancje procesów (`process1` i `process2`) i uruchamia je równolegle. Każdy z procesów wykonuje funkcję `process_function`. Po uruchomieniu obu procesów, program czeka na ich zakończenie za pomocą `join()`.
