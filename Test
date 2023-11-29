@@ -1,33 +1,32 @@
-Moduł `multiprocess` jest alternatywą dla modułu `multiprocessing` w Pythonie, która ma podobne API. Poniżej znajdziesz kod zapisujący zawartość komórki jako plik `.py` przy użyciu modułu `multiprocess`:
+Oczywiście, mogę pokazać jak zaimplementować wielowątkowość w Pythonie przy użyciu Jupyter Notebook. Oto przykład tworzenia dwóch skryptów i funkcji, która uruchomi je równolegle:
 
 ```python
-from multiprocess import Process, Queue
-import time
+import threading
 
-def process_function(process_num, queue):
-    queue.put(f'Rozpoczęcie procesu {process_num}')
-    time.sleep(2)  # Symulacja długotrwałej operacji
-    queue.put(f'Zakończenie procesu {process_num}')
+# Funkcja, którą będą wywoływać wątki
+def wykonaj_kod(nazwa_skryptu):
+    print(f"Uruchamianie skryptu: {nazwa_skryptu}")
 
-if __name__ == '__main__':
-    result_queue = Queue()
-    process1 = Process(target=process_function, args=(1, result_queue))
-    process2 = Process(target=process_function, args=(2, result_queue))
-    process1.start()
-    process2.start()
-    process1.join()
-    process2.join()
+# Funkcje zawierające skrypty
+def skrypt_1():
+    wykonaj_kod("Skrypt 1")
+    # Tutaj umieść kod dla pierwszego skryptu
 
-    while not result_queue.empty():
-        print(result_queue.get())
+def skrypt_2():
+    wykonaj_kod("Skrypt 2")
+    # Tutaj umieść kod dla drugiego skryptu
 
-    print('Oba procesy zakończone.')
+# Tworzenie wątków dla każdego skryptu
+watek_1 = threading.Thread(target=skrypt_1)
+watek_2 = threading.Thread(target=skrypt_2)
+
+# Uruchomienie wątków
+watek_1.start()
+watek_2.start()
+
+# Oczekiwanie na zakończenie wątków
+watek_1.join()
+watek_2.join()
 ```
 
-Tutaj używam `multiprocess` zamiast `multiprocessing`. Proszę upewnić się, że moduł `multiprocess` jest zainstalowany w Twoim środowisku, możesz zainstalować go za pomocą:
-
-```bash
-pip install multiprocess
-```
-
-Następnie, po wykonaniu tej komórki w Jupyter Notebook, możesz sprawdzić, czy plik `moj_kod.py` został utworzony i zawiera oczekiwany kod.
+Ten kod tworzy dwa wątki, każdy z nich odpowiada za uruchomienie jednego skryptu. Funkcja `wykonaj_kod` wyświetla nazwę skryptu, który jest uruchamiany, a miejsce oznaczone komentarzem to miejsce, w którym należy umieścić kod dla odpowiedniego skryptu.
