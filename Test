@@ -1,24 +1,21 @@
-Tak, możliwe jest odświeżanie jednego konkretnego elementu (np. `<div>`) bez konieczności przeładowywania całej strony. Można to zrobić przy użyciu JavaScript w Selenium.
-
-Oto przykład użycia Selenium do odświeżenia zawartości jednego diva na stronie:
+Oczywiście! Ten skrypt sprawdzi, czy istnieje obiekt `driver`. Jeśli nie istnieje lub nie jest otwarty, otworzy nową przeglądarkę i przejdzie na określony URL.
 
 ```python
 from selenium import webdriver
 
-# Inicjalizacja przeglądarki
-driver = webdriver.Chrome()  # Możesz użyć innego sterownika, np. Firefox, Edge, itp.
-
-# Przejście na stronę
-driver.get('https://www.example.com')
-
-# Znalezienie diva do odświeżenia
-div_to_refresh = driver.find_element_by_id('div_id')  # Zastąp 'div_id' właściwym identyfikatorem diva
-
-# Wykonanie odświeżenia za pomocą JavaScript
-driver.execute_script("arguments[0].innerHTML = arguments[0].innerHTML", div_to_refresh)
-
-# Zamknięcie przeglądarki
-driver.quit()
+try:
+    # Sprawdzenie, czy istnieje obiekt driver i czy jest otwarty
+    if not driver or not driver.current_url:
+        print("Przeglądarka nie istnieje lub nie jest otwarta.")
+        driver = webdriver.Chrome()  # Otwarcie nowej przeglądarki
+        driver.get('https://www.example.com')  # Przejście na stronę
+    else:
+        print("Przeglądarka jest już otwarta na stronie:", driver.current_url)
+except NameError:
+    # Jeśli obiekt driver nie istnieje, otwórz nową przeglądarkę i przejdź na stronę
+    print("Obiekt driver nie istnieje.")
+    driver = webdriver.Chrome()  # Otwarcie nowej przeglądarki
+    driver.get('https://www.example.com')  # Przejście na stronę
 ```
 
-Upewnij się, że `'div_id'` to rzeczywisty identyfikator `<div>`, który chcesz odświeżyć. Ta metoda wykorzystuje JavaScript do ustawienia zawartości diva na jego aktualną zawartość, co można traktować jako odświeżenie tego elementu bez przeładowywania całej strony.
+Ten kod sprawdzi, czy istnieje obiekt `driver` i czy jest już otwarty. Jeśli nie istnieje lub nie jest otwarty, otworzy nową przeglądarkę i przejdzie na stronę 'https://www.example.com'. Jeśli obiekt `driver` już istnieje i jest otwarty, wyświetli informację o aktualnie otwartej stronie.
