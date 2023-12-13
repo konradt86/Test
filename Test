@@ -1,76 +1,24 @@
-Oczywiście, możemy dodać przyciski "OK" i "Refresh" do okna błędu, które umożliwią użytkownikowi zamknięcie okna błędu lub ponowne wczytanie danych. Oto zmodyfikowany kod:
+Tak, możliwe jest odświeżanie jednego konkretnego elementu (np. `<div>`) bez konieczności przeładowywania całej strony. Można to zrobić przy użyciu JavaScript w Selenium.
+
+Oto przykład użycia Selenium do odświeżenia zawartości jednego diva na stronie:
 
 ```python
-import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QTableWidget, QTableWidgetItem, QMessageBox
-import pandas as pd
+from selenium import webdriver
 
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
+# Inicjalizacja przeglądarki
+driver = webdriver.Chrome()  # Możesz użyć innego sterownika, np. Firefox, Edge, itp.
 
-        # Przykładowe dane
-        data = {
-            'Name': ['Alice', 'Bob', 'Charlie'],
-            'Age': [25, 30, 35],
-            'City': ['New York', 'San Francisco', 'Los Angeles']
-        }
-        self.df = pd.DataFrame(data)
+# Przejście na stronę
+driver.get('https://www.example.com')
 
-        self.init_ui()
+# Znalezienie diva do odświeżenia
+div_to_refresh = driver.find_element_by_id('div_id')  # Zastąp 'div_id' właściwym identyfikatorem diva
 
-    def init_ui(self):
-        self.setWindowTitle('Wczytywanie danych do UI')
+# Wykonanie odświeżenia za pomocą JavaScript
+driver.execute_script("arguments[0].innerHTML = arguments[0].innerHTML", div_to_refresh)
 
-        # Tworzenie przycisku do wczytywania danych
-        load_button = QPushButton('Wczytaj dane', self)
-        load_button.clicked.connect(self.load_data)
-
-        # Tabela do wyświetlania danych
-        self.table = QTableWidget()
-        self.table.setColumnCount(len(self.df.columns))
-        self.table.setRowCount(len(self.df.index))
-        self.table.setHorizontalHeaderLabels(self.df.columns)
-
-        layout = QVBoxLayout()
-        layout.addWidget(load_button)
-        layout.addWidget(self.table)
-
-        central_widget = QWidget()
-        central_widget.setLayout(layout)
-        self.setCentralWidget(central_widget)
-
-    def load_data(self):
-        try:
-            for i in range(len(self.df.index)):
-                for j in range(len(self.df.columns)):
-                    item = QTableWidgetItem(str(self.df.iloc[i, j]))
-                    self.table.setItem(i, j, item)
-        except Exception as e:
-            self.show_error(e)
-
-    def show_error(self, error):
-        error_box = QMessageBox()
-        error_box.setIcon(QMessageBox.Critical)
-        error_box.setWindowTitle("Błąd")
-        error_box.setText(f"Wystąpił błąd: {error}")
-        
-        ok_button = error_box.addButton('OK', QMessageBox.AcceptRole)
-        refresh_button = error_box.addButton('Refresh', QMessageBox.ActionRole)
-
-        ok_button.clicked.connect(error_box.accept)
-        refresh_button.clicked.connect(self.load_data)
-
-        error_box.exec()
-
-def run_app():
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec_())
-
-if __name__ == "__main__":
-    run_app()
+# Zamknięcie przeglądarki
+driver.quit()
 ```
 
-Teraz, gdy pojawi się okno błędu, będą dostępne przyciski "OK" i "Refresh". Przycisk "OK" zamknie okno błędu, a przycisk "Refresh" spróbuje ponownie wczytać dane.
+Upewnij się, że `'div_id'` to rzeczywisty identyfikator `<div>`, który chcesz odświeżyć. Ta metoda wykorzystuje JavaScript do ustawienia zawartości diva na jego aktualną zawartość, co można traktować jako odświeżenie tego elementu bez przeładowywania całej strony.
