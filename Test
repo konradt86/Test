@@ -1,21 +1,41 @@
-Oczywiście! Ten skrypt sprawdzi, czy istnieje obiekt `driver`. Jeśli nie istnieje lub nie jest otwarty, otworzy nową przeglądarkę i przejdzie na określony URL.
+Tak, można napisać funkcję w Power Query, która będzie porównywać kolumny dwóch tabel po kolei, bez konieczności podawania nazw kolumn. Oto jak to zrobić:
 
-```python
-from selenium import webdriver
+1. **Import danych do Power Query**:
+   - Zaimportuj obie tabele do Power Query jako osobne zapytania, używając opcji "From Table/Range" na karcie "Data".
 
-try:
-    # Sprawdzenie, czy istnieje obiekt driver i czy jest otwarty
-    if not driver or not driver.current_url:
-        print("Przeglądarka nie istnieje lub nie jest otwarta.")
-        driver = webdriver.Chrome()  # Otwarcie nowej przeglądarki
-        driver.get('https://www.example.com')  # Przejście na stronę
-    else:
-        print("Przeglądarka jest już otwarta na stronie:", driver.current_url)
-except NameError:
-    # Jeśli obiekt driver nie istnieje, otwórz nową przeglądarkę i przejdź na stronę
-    print("Obiekt driver nie istnieje.")
-    driver = webdriver.Chrome()  # Otwarcie nowej przeglądarki
-    driver.get('https://www.example.com')  # Przejście na stronę
-```
+2. **Stwórz niestandardową funkcję**:
+   - Wybierz zakładkę "Home" i kliknij na przycisk "Advanced Editor" w sekcji "Query".
+   - W oknie "Advanced Editor" napisz niestandardową funkcję łączenia danych:
+     ```m
+     let
+         MergeTables = (Tabela1 as table, Tabela2 as table) =>
+             let
+                 KolumnyTabela1 = Table.ColumnNames(Tabela1),
+                 KolumnyTabela2 = Table.ColumnNames(Tabela2),
+                 LiczbaKolumn = List.Count(KolumnyTabela1),
+                 KolumnyPasujące = List.Zip({KolumnyTabela1, KolumnyTabela2}),
+                 PołączoneDane = List.Accumulate(KolumnyPasujące, Tabela1, (acc, current) => Table.Join(acc, current{0}, Tabela2, current{1}, JoinKind.Inner))
+             in
+                 PołączoneDane
+     in
+         MergeTables
+     ```
+   - Kliknij "Done", aby zaakceptować funkcję.
 
-Ten kod sprawdzi, czy istnieje obiekt `driver` i czy jest już otwarty. Jeśli nie istnieje lub nie jest otwarty, otworzy nową przeglądarkę i przejdzie na stronę 'https://www.example.com'. Jeśli obiekt `driver` już istnieje i jest otwarty, wyświetli informację o aktualnie otwartej stronie.
+3. **Wywołaj funkcję dla nowych danych**:
+   - W nowym zapytaniu (query), zaimportuj dane z obu tabel.
+   - Następnie wywołaj funkcję `MergeTables` z nowo zaimportowanymi danymi jako argumentami:
+     ```m
+     let
+         Tabela1 = ...(importuj pierwszą tabelę),
+         Tabela2 = ...(importuj drugą tabelę),
+         PołączoneDane = MergeTables(Tabela1, Tabela2)
+     in
+         PołączoneDane
+     ```
+
+4. **Zastosuj i załaduj zmodyfikowane dane**:
+   - Po wywołaniu funkcji i połączeniu danych, zastosuj wszelkie inne operacje transformacji, które są wymagane.
+   - Załaduj zmodyfikowane dane do arkusza Excela.
+
+Ta funkcja porównuje kolumny dwóch tabel po kolei i łączy je, jeśli ich nagłówki są zgodne. Jeśli potrzebujesz dalszej pomocy lub wyjaśnień, daj mi znać!
