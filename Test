@@ -1,41 +1,12 @@
-Tak, można napisać funkcję w Power Query, która będzie porównywać kolumny dwóch tabel po kolei, bez konieczności podawania nazw kolumn. Oto jak to zrobić:
+Rozumiem, chcesz stworzyć funkcję, która sprawdzi, czy dany nagłówek z Tabela2 występuje w nagłówkach Tabela1, a jeśli tak, to skopiować całą kolumnę z Tabela1 do Tabela2. Oto jak możemy to zrobić:
 
-1. **Import danych do Power Query**:
-   - Zaimportuj obie tabele do Power Query jako osobne zapytania, używając opcji "From Table/Range" na karcie "Data".
+```excel
+=IF(ISNUMBER(MATCH(B$1, Tabela1[#Nagłówki], 0)), INDEX(Tabela1[#All], 0, MATCH(B$1, Tabela1[#Nagłówki], 0)), "")
+```
 
-2. **Stwórz niestandardową funkcję**:
-   - Wybierz zakładkę "Home" i kliknij na przycisk "Advanced Editor" w sekcji "Query".
-   - W oknie "Advanced Editor" napisz niestandardową funkcję łączenia danych:
-     ```m
-     let
-         MergeTables = (Tabela1 as table, Tabela2 as table) =>
-             let
-                 KolumnyTabela1 = Table.ColumnNames(Tabela1),
-                 KolumnyTabela2 = Table.ColumnNames(Tabela2),
-                 LiczbaKolumn = List.Count(KolumnyTabela1),
-                 KolumnyPasujące = List.Zip({KolumnyTabela1, KolumnyTabela2}),
-                 PołączoneDane = List.Accumulate(KolumnyPasujące, Tabela1, (acc, current) => Table.Join(acc, current{0}, Tabela2, current{1}, JoinKind.Inner))
-             in
-                 PołączoneDane
-     in
-         MergeTables
-     ```
-   - Kliknij "Done", aby zaakceptować funkcję.
+Ta formuła działa w następujący sposób:
+- `MATCH(B$1, Tabela1[#Nagłówki], 0)`: sprawdza, czy nagłówek z komórki B1 Tabela2 występuje w nagłówkach Tabela1.
+- Jeśli nagłówek zostanie znaleziony (`ISNUMBER`), `INDEX(Tabela1[#All], 0, MATCH(B$1, Tabela1[#Nagłówki], 0))` skopiuje całą kolumnę z Tabela1 dla pasującego nagłówka. `INDEX` z wartością wiersza ustawioną na 0 zwraca całą kolumnę.
+- Jeśli nagłówek nie zostanie znaleziony, zostanie zwrócony pusty ciąg znaków ("").
 
-3. **Wywołaj funkcję dla nowych danych**:
-   - W nowym zapytaniu (query), zaimportuj dane z obu tabel.
-   - Następnie wywołaj funkcję `MergeTables` z nowo zaimportowanymi danymi jako argumentami:
-     ```m
-     let
-         Tabela1 = ...(importuj pierwszą tabelę),
-         Tabela2 = ...(importuj drugą tabelę),
-         PołączoneDane = MergeTables(Tabela1, Tabela2)
-     in
-         PołączoneDane
-     ```
-
-4. **Zastosuj i załaduj zmodyfikowane dane**:
-   - Po wywołaniu funkcji i połączeniu danych, zastosuj wszelkie inne operacje transformacji, które są wymagane.
-   - Załaduj zmodyfikowane dane do arkusza Excela.
-
-Ta funkcja porównuje kolumny dwóch tabel po kolei i łączy je, jeśli ich nagłówki są zgodne. Jeśli potrzebujesz dalszej pomocy lub wyjaśnień, daj mi znać!
+Możesz umieścić tę formułę w komórce B2 Tabela2, a następnie przeciągnąć ją na całą kolumnę, aby sprawdzić każdy nagłówek z Tabela2 i skopiować pasujące kolumny z Tabela1.
