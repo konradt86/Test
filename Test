@@ -1,1 +1,48 @@
 =IF(ISNUMBER(MATCH(B$1, Tabela1[#Nagłówki], 0)), INDEX(Tabela1[#All], 0, MATCH(B$1, Tabela1[#Nagłówki], 0)), "")
+Kod R przekształcony na Python wyglądałby mniej więcej tak, przy użyciu pakietów pandas i numpy:
+
+```python
+import pandas as pd
+import numpy as np
+
+# Załóżmy, że 'wd' to ścieżka do katalogu roboczego
+wd = 'path_to_your_working_directory'
+
+# Wczytywanie danych
+merged = pd.read_csv(wd + '/results_load_all.csv', sep=',')
+
+def minimums_interest(df):
+    # Grupowanie po funduszu i wstrząsie stopy procentowej
+    grouped = df.groupby(['FUND', 'interest.rate.shock'])
+    results = pd.DataFrame()
+
+    for name, group in grouped:
+        # Sortowanie według credit.spread.multiple
+        group_sorted = group.sort_values(by='credit.spread.multiple', ascending=True)
+        
+        # Wyszukiwanie kolumn RDM
+        rdm_columns = [col for col in group.columns if col.startswith('RDM.')]
+        rdm = group_sorted[rdm_columns]
+        
+        # Znajdowanie indeksów, gdzie rdm jest mniejsze niż 0.995
+        lowI = rdm < 0.995
+        resRowIdx = lowI.apply(lambda col: col.idxmin() if col.any() else np.nan, axis=0)
+        
+        # Wyciąganie wyników dla odpowiadających indeksów
+        result = group_sorted.loc[resRowIdx, 'credit.spread.multiple'] if not resRowIdx.isna().all() else pd.Series([np.nan])
+
+        # Dodawanie wyników do DataFrame
+        results = results.append(result, ignore_index=True)
+    
+    return results.transpose()
+
+interest_results = minimums_interest(merged)
+
+# Transponowanie wyników
+interest_results_T = interest_results.transpose()
+
+# Zapisywanie do CSV
+interest_results_T.to_csv(wd + '/stress_minimum_interest_results_summary.csv', na_rep='-', index=True)
+```
+
+Upewnij się, że `path_to_your_working_directory` jest poprawną ś
