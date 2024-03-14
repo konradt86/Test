@@ -1,6 +1,6 @@
-Przepraszam za pomyłkę. Poprawimy kod tak, aby uniknąć tego błędu w pandas. Prawdopodobnie problem występuje w linii, gdzie używamy `loc` do wybrania wierszy na podstawie `resRowIdx`. Zamiast tego, możemy użyć `iloc` w połączeniu z `dropna()` do wybrania tylko tych wierszy, które istnieją.
+Masz rację, kod R wygląda na to, że tworzy kolumny `RDM.` z sekwencji 0, 50, 10 i następnie szuka wartości mniejszych niż 0.995. Błąd w Pythonie najprawdopodobniej wynika z próby odwołania się do indeksów, które nie istnieją w DataFrame. Aby to naprawić, musimy użyć `iloc` zamiast `loc`, i musimy odpowiednio przefiltrować DataFrame, aby wybrać tylko te wiersze, które mają indeksy znajdujące się w DataFrame.
 
-Oto poprawiony fragment kodu:
+Poprawiony fragment kodu Pythona powinien używać `iloc` i powinien odpowiednio filtrować DataFrame:
 
 ```python
 # ...
@@ -14,17 +14,15 @@ def minimums_interest(df):
         # Sortowanie według credit.spread.multiple
         group_sorted = group.sort_values(by='credit.spread.multiple', ascending=True)
         
-        # Wyszukiwanie kolumn RDM
-        rdm_columns = [col for col in group.columns if 'RDM.' in col]
-        rdm = group_sorted[rdm_columns]
+        # Wyszukiwanie wartości RDM.
+        rdm_values = group_sorted[[f'RDM.{i}' for i in range(0, 51, 10)]]
         
         # Znajdowanie indeksów, gdzie rdm jest mniejsze niż 0.995
-        lowI = rdm < 0.995
-        resRowIdx = lowI.apply(lambda col: col.idxmax() if col.any() else np.nan, axis=1)
-        resRowIdx = resRowIdx.dropna()  # Usuwanie NaN przed użyciem w loc
-
+        lowI = rdm_values < 0.995
+        resRowIdx = lowI.apply(lambda row: row[row].index.min() if row.any() else np.nan, axis=1).dropna()
+        
         # Wyciąganie wyników dla odpowiadających indeksów
-        result = group_sorted.loc[resRowIdx, 'credit.spread.multiple'] if not resRowIdx.empty else pd.Series([np.nan])
+        result = pd.Series(group_sorted.loc[resRowIdx.index, 'credit.spread.multiple'])
 
         # Dodawanie wyników do listy
         results.append(result)
@@ -37,4 +35,4 @@ def minimums_interest(df):
 # ...
 ```
 
-Upewnij się, że nazwy kolumn 'FUND', 'interest.rate.shock' oraz 'credit.spread.multiple' są identyczne z tymi w DataFrame. Wartości w rdm_columns również muszą odpowiadać temu, co masz w DataFrame. Jeśli nadal wystąpią błędy, upewnij się, że wszystkie wymagane kolumny istnieją w DataFrame przed uruchomieniem kodu.
+Powyższy kod zakłada, że kolumny `RDM.0`, `RDM.10`, `RDM.20`, `RDM.30`, `RDM.40`, `RDM.50` istnieją w DataFrame `group_sorted`. Pro
