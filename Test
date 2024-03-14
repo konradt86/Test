@@ -1,48 +1,40 @@
-=IF(ISNUMBER(MATCH(B$1, Tabela1[#Nagłówki], 0)), INDEX(Tabela1[#All], 0, MATCH(B$1, Tabela1[#Nagłówki], 0)), "")
-Kod R przekształcony na Python wyglądałby mniej więcej tak, przy użyciu pakietów pandas i numpy:
+Przepraszam za pomyłkę. Poprawimy kod tak, aby uniknąć tego błędu w pandas. Prawdopodobnie problem występuje w linii, gdzie używamy `loc` do wybrania wierszy na podstawie `resRowIdx`. Zamiast tego, możemy użyć `iloc` w połączeniu z `dropna()` do wybrania tylko tych wierszy, które istnieją.
+
+Oto poprawiony fragment kodu:
 
 ```python
-import pandas as pd
-import numpy as np
-
-# Załóżmy, że 'wd' to ścieżka do katalogu roboczego
-wd = 'path_to_your_working_directory'
-
-# Wczytywanie danych
-merged = pd.read_csv(wd + '/results_load_all.csv', sep=',')
+# ...
 
 def minimums_interest(df):
     # Grupowanie po funduszu i wstrząsie stopy procentowej
     grouped = df.groupby(['FUND', 'interest.rate.shock'])
-    results = pd.DataFrame()
+    results = []
 
     for name, group in grouped:
         # Sortowanie według credit.spread.multiple
         group_sorted = group.sort_values(by='credit.spread.multiple', ascending=True)
         
         # Wyszukiwanie kolumn RDM
-        rdm_columns = [col for col in group.columns if col.startswith('RDM.')]
+        rdm_columns = [col for col in group.columns if 'RDM.' in col]
         rdm = group_sorted[rdm_columns]
         
         # Znajdowanie indeksów, gdzie rdm jest mniejsze niż 0.995
         lowI = rdm < 0.995
-        resRowIdx = lowI.apply(lambda col: col.idxmin() if col.any() else np.nan, axis=0)
-        
+        resRowIdx = lowI.apply(lambda col: col.idxmax() if col.any() else np.nan, axis=1)
+        resRowIdx = resRowIdx.dropna()  # Usuwanie NaN przed użyciem w loc
+
         # Wyciąganie wyników dla odpowiadających indeksów
-        result = group_sorted.loc[resRowIdx, 'credit.spread.multiple'] if not resRowIdx.isna().all() else pd.Series([np.nan])
+        result = group_sorted.loc[resRowIdx, 'credit.spread.multiple'] if not resRowIdx.empty else pd.Series([np.nan])
 
-        # Dodawanie wyników do DataFrame
-        results = results.append(result, ignore_index=True)
+        # Dodawanie wyników do listy
+        results.append(result)
+
+    # Konwertowanie listy wyników do DataFrame i transponowanie
+    results_df = pd.concat(results, axis=1).transpose()
     
-    return results.transpose()
+    return results_df
 
-interest_results = minimums_interest(merged)
-
-# Transponowanie wyników
-interest_results_T = interest_results.transpose()
-
-# Zapisywanie do CSV
-interest_results_T.to_csv(wd + '/stress_minimum_interest_results_summary.csv', na_rep='-', index=True)
+# ...
 ```
 
-Upewnij się, że `path_to_your_working_directory` jest poprawną ś
+Upewnij się, że nazwy kolumn 'FUND', 'interest.rate.shock' oraz 'credit.spread.multiple' są identyczne z tymi w DataFrame. Wartości w rdm_columns również muszą odpowiadać temu, co masz w DataFrame. Jeśli nadal wystąpią błędy, upewnij się, że wszystkie wymagane kolumny istnieją w DataFrame przed uruchomieniem kodu.
