@@ -1,85 +1,26 @@
-Kod R przekształcony na Python wyglądałby mniej więcej tak, przy użyciu pakietów pandas i numpy:
+Oczywiście, oto skrypt, który napisałem, aby przekształcić dane w kolumnach RDM i pogrupować je według funduszu:
 
 ```python
 import pandas as pd
-import numpy as np
 
-# Załóżmy, że 'wd' to ścieżka do katalogu roboczego
-wd = 'path_to_your_working_directory'
+# Załadowanie rozszerzonego DataFrame'a
+expanded_df = pd.read_csv('/mnt/data/expanded_result_load.csv')
 
-# Wczytywanie danych
-merged = pd.read_csv(wd + '/results_load_all.csv', sep=',')
+# Zdefiniowanie funkcji, aby zastosować logikę warunkową do kolumn RDM
+def replace_rdm_values(row, rdm_columns):
+    for rdm_col in rdm_columns:
+        row[rdm_col] = row['interest_rate_shock'] if row[rdm_col] <= 0.995 else '-'
+    return row
 
-def minimums_interest(df):
-    # Grupowanie po funduszu i wstrząsie stopy procentowej
-    grouped = df.groupby(['FUND', 'interest.rate.shock'])
-    results = pd.DataFrame()
+# Stosowanie funkcji na DataFrame'ie
+rdm_columns = [col for col in expanded_df.columns if 'RDM' in col]
+modified_df = expanded_df.apply(lambda row: replace_rdm_values(row, rdm_columns), axis=1)
 
-    for name, group in grouped:
-        # Sortowanie według credit.spread.multiple
-        group_sorted = group.sort_values(by='credit.spread.multiple', ascending=True)
-        
-        # Wyszukiwanie kolumn RDM
-        rdm_columns = [col for col in group.columns if col.startswith('RDM.')]
-        rdm = group_sorted[rdm_columns]
-        
-        # Znajdowanie indeksów, gdzie rdm jest mniejsze niż 0.995
-        lowI = rdm < 0.995
-        resRowIdx = lowI.apply(lambda col: col.idxmin() if col.any() else np.nan, axis=0)
-        
-        # Wyciąganie wyników dla odpowiadających indeksów
-        result = group_sorted.loc[resRowIdx, 'credit.spread.multiple'] if not resRowIdx.isna().all() else pd.Series([np.nan])
+# Grupowanie przez 'FUND'
+grouped_funds = modified_df.groupby('FUND')
 
-        # Dodawanie wyników do DataFrame
-        results = results.append(result, ignore_index=True)
-    
-    return results.transpose()
-
-interest_results = minimums_interest(merged)
-
-# Transponowanie wyników
-interest_results_T = interest_results.transpose()
-
-# Zapisywanie do CSV
-interest_results_T.to_csv(wd + '/stress_minimum_interest_results_summary.csv', na_rep='-', index=True)
+# Tworzenie słownika, aby przechować każdą grupę jako oddzielny DataFrame
+grouped_funds_dict = {fund: data for fund, data in grouped_funds}
 ```
 
-Upewnij się, że `path_to_your_working_directory` jest poprawną ścieżką do katalogu roboczego, gdzie znajduje się plik 'results_load_all.csv'. Kolumny muszą być dokładnie takie same jak w R, w przeciwnym razie kod może wymagać dostosowania.
-Masz rację, kod R wygląda na to, że tworzy kolumny `RDM.` z sekwencji 0, 50, 10 i następnie szuka wartości mniejszych niż 0.995. Błąd w Pythonie najprawdopodobniej wynika z próby odwołania się do indeksów, które nie istnieją w DataFrame. Aby to naprawić, musimy użyć `iloc` zamiast `loc`, i musimy odpowiednio przefiltrować DataFrame, aby wybrać tylko te wiersze, które mają indeksy znajdujące się w DataFrame.
-
-Poprawiony fragment kodu Pythona powinien używać `iloc` i powinien odpowiednio filtrować DataFrame:
-
-```python
-# ...
-
-def minimums_interest(df):
-    # Grupowanie po funduszu i wstrząsie stopy procentowej
-    grouped = df.groupby(['FUND', 'interest.rate.shock'])
-    results = []
-
-    for name, group in grouped:
-        # Sortowanie według credit.spread.multiple
-        group_sorted = group.sort_values(by='credit.spread.multiple', ascending=True)
-        
-        # Wyszukiwanie wartości RDM.
-        rdm_values = group_sorted[[f'RDM.{i}' for i in range(0, 51, 10)]]
-        
-        # Znajdowanie indeksów, gdzie rdm jest mniejsze niż 0.995
-        lowI = rdm_values < 0.995
-        resRowIdx = lowI.apply(lambda row: row[row].index.min() if row.any() else np.nan, axis=1).dropna()
-        
-        # Wyciąganie wyników dla odpowiadających indeksów
-        result = pd.Series(group_sorted.loc[resRowIdx.index, 'credit.spread.multiple'])
-
-        # Dodawanie wyników do listy
-        results.append(result)
-
-    # Konwertowanie listy wyników do DataFrame i transponowanie
-    results_df = pd.concat(results, axis=1).transpose()
-    
-    return results_df
-
-# ...
-```
-
-Powyższy kod zakłada, że kolumny `RDM.0`, `RDM.10`, `RDM.20`, `RDM.30`, `RDM.40`, `RDM.50` istnieją w DataFrame `group_sorted`. Pro
+Ta funkcja `replace_rdm_values` jest wywoływana dla każdego wiersza w DataFrame, przekształcając kolumny RDM według zadanego warunku. Następnie DataFrame jest grupowany według kolumny 'FUND', a wyniki są przechowywane w słowniku `grouped_funds_dict`.
