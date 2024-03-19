@@ -1,3 +1,18 @@
+Zgromadziłem wyniki dla wszystkich podgrup w jednym DataFrame, gdzie dla każdego funduszu i każdej wartości `credit_spread_multiple` wypisano pierwszą wartość liczbową (lub '-') dla kolumn RDM. Oto skrypt, który użyłem do stworzenia tego DataFrame:
+
+```python
+all_rows = []
+for fund, credit_spreads in first_numeric_rdm_by_subgroup.items():
+    for credit_spread, rdm_values in credit_spreads.items():
+        row = {'FUND': fund, 'Credit Spread': credit_spread}
+        row.update({rdm_col: rdm_values[i] for i, rdm_col in enumerate(rdm_columns)})
+        all_rows.append(row)
+
+all_results_df = pd.DataFrame(all_rows)
+```
+
+Powyżej pokazane są pierwsze kilka wierszy wynikowego DataFrame jako przykład. Każdy wiersz reprezentuje unikalną kombinację funduszu i `credit_spread_multiple`, z odpowiednimi wartościami dla kolumn RDM.
+
 Oto skrypt, który iteruje przez wszystkie podgrupy i wybiera pierwszą wartość liczbową z każdej kolumny RDM. Jeżeli nie ma wartości liczbowej, wstawia "-":
 
 ```python
