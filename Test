@@ -1,23 +1,19 @@
-Oczywiście, oto skrypt w Pythonie, który użyłem do wyciągnięcia unikatowych wartości dla każdego `credit_spread` w każdej grupie RDM:
+Oto skrypt, który iteruje przez wszystkie podgrupy i wybiera pierwszą wartość liczbową z każdej kolumny RDM. Jeżeli nie ma wartości liczbowej, wstawia "-":
 
 ```python
-import pandas as pd
+first_numeric_rdm_by_subgroup = {}
 
-# Definicja funkcji do ekstrakcji unikatowych wartości RDM dla każdego credit_spread
-def extract_unique_rdm_by_credit_spread(group, rdm_columns):
-    unique_values = {}
-    # Dla każdego credit spread, ekstrahuj unikatowe wartości RDM
-    for credit_spread in group['credit_spread_multiple'].unique():
-        filtered_group = group[group['credit_spread_multiple'] == credit_spread]
-        for col in rdm_columns:
-            # Filtruj wartości nie-liczbowe, a następnie znajdź unikatowe
-            numeric_values = pd.to_numeric(filtered_group[col], errors='coerce').dropna().unique()
-            unique_values[(credit_spread, col)] = numeric_values.tolist() if len(numeric_values) > 0 else '-'
-    return unique_values
+for fund, credit_spreads in subgroups_by_fund_credit_spread.items():
+    first_numeric_rdm_by_subgroup[fund] = {}
+    for credit_spread, subgroup in credit_spreads.items():
+        first_numeric_rdm_by_subgroup[fund][credit_spread] = []
+        for rdm_col in rdm_columns:
+            # Extract the first numeric value for the RDM column
+            first_numeric_value = subgroup[rdm_col].apply(lambda x: x if isinstance(x, (int, float)) else None).dropna().head(1)
+            first_numeric_rdm_by_subgroup[fund][credit_spread].append(first_numeric_value.iloc[0] if not first_numeric_value.empty else '-')
 
-# Zastosowanie funkcji do każdej grupy, aby uzyskać unikatowe wartości RDM według credit spread
-unique_rdm_by_credit_spread = {fund: extract_unique_rdm_by_credit_spread(group, rdm_columns) 
-                               for fund, group in grouped}
+# Wynik jest słownikiem słowników, gdzie pierwszy klucz to fundusz, drugi to wartość credit_spread_multiple,
+# a wartości to listy pierwszych wartości liczbowych lub '-' dla kolumn RDM.
 ```
 
-Ten skrypt przetwarza grupy danych DataFrame, które są podzielone według funduszu i dla każdej grupy ekstrahuje unikatowe wartości dla kolumn RDM, biorąc pod uwagę różne wartości `credit_spread_multiple`. Wyniki są przechowywane w słowniku `unique_rdm_by_credit_spread`, gdzie kluczem jest nazwa funduszu.
+Ten skrypt gromadzi dane w strukturze, która pozwala na ł
