@@ -1,26 +1,23 @@
-Oczywiście, oto skrypt, który napisałem, aby przekształcić dane w kolumnach RDM i pogrupować je według funduszu:
+Oczywiście, oto skrypt w Pythonie, który użyłem do wyciągnięcia unikatowych wartości dla każdego `credit_spread` w każdej grupie RDM:
 
 ```python
 import pandas as pd
 
-# Załadowanie rozszerzonego DataFrame'a
-expanded_df = pd.read_csv('/mnt/data/expanded_result_load.csv')
+# Definicja funkcji do ekstrakcji unikatowych wartości RDM dla każdego credit_spread
+def extract_unique_rdm_by_credit_spread(group, rdm_columns):
+    unique_values = {}
+    # Dla każdego credit spread, ekstrahuj unikatowe wartości RDM
+    for credit_spread in group['credit_spread_multiple'].unique():
+        filtered_group = group[group['credit_spread_multiple'] == credit_spread]
+        for col in rdm_columns:
+            # Filtruj wartości nie-liczbowe, a następnie znajdź unikatowe
+            numeric_values = pd.to_numeric(filtered_group[col], errors='coerce').dropna().unique()
+            unique_values[(credit_spread, col)] = numeric_values.tolist() if len(numeric_values) > 0 else '-'
+    return unique_values
 
-# Zdefiniowanie funkcji, aby zastosować logikę warunkową do kolumn RDM
-def replace_rdm_values(row, rdm_columns):
-    for rdm_col in rdm_columns:
-        row[rdm_col] = row['interest_rate_shock'] if row[rdm_col] <= 0.995 else '-'
-    return row
-
-# Stosowanie funkcji na DataFrame'ie
-rdm_columns = [col for col in expanded_df.columns if 'RDM' in col]
-modified_df = expanded_df.apply(lambda row: replace_rdm_values(row, rdm_columns), axis=1)
-
-# Grupowanie przez 'FUND'
-grouped_funds = modified_df.groupby('FUND')
-
-# Tworzenie słownika, aby przechować każdą grupę jako oddzielny DataFrame
-grouped_funds_dict = {fund: data for fund, data in grouped_funds}
+# Zastosowanie funkcji do każdej grupy, aby uzyskać unikatowe wartości RDM według credit spread
+unique_rdm_by_credit_spread = {fund: extract_unique_rdm_by_credit_spread(group, rdm_columns) 
+                               for fund, group in grouped}
 ```
 
-Ta funkcja `replace_rdm_values` jest wywoływana dla każdego wiersza w DataFrame, przekształcając kolumny RDM według zadanego warunku. Następnie DataFrame jest grupowany według kolumny 'FUND', a wyniki są przechowywane w słowniku `grouped_funds_dict`.
+Ten skrypt przetwarza grupy danych DataFrame, które są podzielone według funduszu i dla każdej grupy ekstrahuje unikatowe wartości dla kolumn RDM, biorąc pod uwagę różne wartości `credit_spread_multiple`. Wyniki są przechowywane w słowniku `unique_rdm_by_credit_spread`, gdzie kluczem jest nazwa funduszu.
