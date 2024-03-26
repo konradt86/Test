@@ -1,3 +1,42 @@
+Jeśli chcesz zainicjować sesję przeglądarki przez Selenium i potem sprawdzić, czy została ona pomyślnie otwarta, a jeśli nie, spróbować ponownie, możesz skorzystać z poniższego podejścia w Pythonie. Wykorzystuje ono wyjątki Selenium do obsługi przypadków, gdy przeglądarka nie została otwarta poprawnie, i próbuje ponownie zainicjować sesję w takim przypadku.
+
+Zakładając, że masz już zainstalowane Selenium i sterownik dla przeglądarki, możesz zrobić coś takiego:
+
+```python
+from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
+from webdriver_manager.chrome import ChromeDriverManager
+import time
+
+def get_driver(attempts=3):
+    for attempt in range(attempts):
+        try:
+            # Próba utworzenia nowej sesji przeglądarki
+            driver = webdriver.Chrome(ChromeDriverManager().install())
+            print("Sesja przeglądarki została pomyślnie utworzona.")
+            return driver
+        except WebDriverException as e:
+            print(f"Nie udało się utworzyć sesji przeglądarki: {e}")
+            print(f"Próba {attempt + 1} z {attempts}. Ponowne próbowanie...")
+            time.sleep(5)  # Odczekaj chwilę przed kolejną próbą
+    print("Nie udało się utworzyć sesji przeglądarki po wielokrotnych próbach.")
+    return None
+
+# Użyj tej funkcji do inicjowania sesji przeglądarki
+driver = get_driver()
+
+if driver is not None:
+    # Możesz teraz używać 'driver' do manipulowania przeglądarką
+    driver.get("https://www.google.com")
+    # Pamiętaj, aby zamknąć sesję po zakończeniu
+    driver.quit()
+```
+
+Ten skrypt próbuje utworzyć sesję przeglądarki maksymalnie trzy razy (możesz dostosować tę liczbę do swoich potrzeb). Jeśli inicjacja się nie powiedzie (na przykład z powodu problemów z sterownikiem), skrypt odczeka 5 sekund przed ponowieniem próby. Dzięki temu masz pewność, że skrypt nie zakończy się niepowodzeniem od razu z powodu przejściowych problemów z uruchomieniem sterownika przeglądarki.
+
+Pamiętaj, że używanie takiego podejścia może być przydatne w scenariuszach testowych lub podczas rozwijania oprogramowania, ale należy być ostrożnym przy stosowaniu go w środowiskach produkcyjnych, gdzie nieprzewidywalne opóźnienia i problemy z uruchamianiem przeglądarki mogą wskazywać na inne, bardziej złożone problemy systemowe.
+
+
 Aby stworzyć skrypt Pythona, który używa Selenium do otwierania przeglądarki Edge, musisz najpierw upewnić się, że masz zainstalowane odpowiednie narzędzia i sterowniki. Oto kroki, które należy wykonać:
 
 1. **Instalacja Selenium:** Użyj polecenia `pip install selenium` w terminalu lub cmd, aby zainstalować bibliotekę Selenium.
