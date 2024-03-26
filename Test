@@ -1,3 +1,37 @@
+Aby stworzyć skrypt Pythona, który używa Selenium do otwierania przeglądarki Edge, musisz najpierw upewnić się, że masz zainstalowane odpowiednie narzędzia i sterowniki. Oto kroki, które należy wykonać:
+
+1. **Instalacja Selenium:** Użyj polecenia `pip install selenium` w terminalu lub cmd, aby zainstalować bibliotekę Selenium.
+2. **Pobranie sterownika Edge:** Musisz pobrać odpowiedni sterownik dla przeglądarki Edge (Microsoft Edge Driver) zgodny z wersją przeglądarki, której używasz. Możesz go znaleźć na oficjalnej stronie Microsoftu.
+3. **Konfiguracja ścieżki do sterownika:** Po pobraniu sterownika umieść go w łatwo dostępnym katalogu lub dodaj katalog, w którym się znajduje, do zmiennej środowiskowej PATH.
+
+Poniżej znajduje się przykładowy skrypt, który otwiera przeglądarkę Edge za pomocą Selenium:
+
+```python
+from selenium import webdriver
+from selenium.webdriver.edge.service import Service
+from webdriver_manager.microsoft import EdgeChromiumDriverManager
+
+# Inicjalizacja usługi sterownika Edge
+service = Service(EdgeChromiumDriverManager().install())
+
+# Opcje przeglądarki (opcjonalnie, można je dostosować lub usunąć)
+options = webdriver.EdgeOptions()
+options.use_chromium = True  # Użyj Chromium, jeśli Twoja wersja Edge jest oparta na Chromium
+
+# Utworzenie instancji przeglądarki Edge
+driver = webdriver.Edge(service=service, options=options)
+
+# Otworzenie strony (na przykład Google)
+driver.get("http://www.google.com")
+
+# Zakończenie pracy z przeglądarką po zakończeniu testów
+# driver.quit()  # Odkomentuj, gdy chcesz zamknąć przeglądarkę automatycznie
+```
+
+W tym skrypcie użyto `webdriver_manager`, który automatycznie pobiera i ustawia najnowszą wersję sterownika dla przeglądarki, eliminując konieczność ręcznego zarządzania sterownikami. Możesz zainstalować `webdriver_manager` używając polecenia `pip install webdriver_manager`.
+
+Pamiętaj, że Selenium wymaga, aby sterownik przeglądarki był kompatybilny z wersją przeglądarki, której używasz, więc upewnij się, że masz zainstalowaną odpowiednią wersję sterownika.
+
 Zgromadziłem wyniki dla wszystkich podgrup w jednym DataFrame, gdzie dla każdego funduszu i każdej wartości `credit_spread_multiple` wypisano pierwszą wartość liczbową (lub '-') dla kolumn RDM. Oto skrypt, który użyłem do stworzenia tego DataFrame:
 
 ```python
