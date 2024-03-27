@@ -1,26 +1,32 @@
-from selenium import webdriver
-from selenium.webdriver.edge.service import Service
-from webdriver_manager.microsoft import EdgeChromiumDriverManager
+# Aby dodać jeden dzień do dzisiejszej daty i uzyskać odpowiednią datę w następnym miesiącu:
 
-# Inicjalizacja drivera Edge
-driver = webdriver.Edge(service=Service(EdgeChromiumDriverManager().install()))
+# Pobieranie dzisiejszej daty
+dzis = datetime.now()
 
-try:
-    # Otwarcie URL
-    url = 'http://example.com'
-    driver.get(url)
-    
-    # Sprawdzenie, czy URL został otworzony
-    if driver.current_url == url:
-        print("URL został pomyślnie otworzony.")
-    else:
-        print("Nie udało się otworzyć URL.")
-        
-    # Sprawdzenie, czy driver został zainicjowany
-    if driver.service.is_connectable():
-        print("Driver został zainicjowany.")
-    else:
-        print("Driver nie został zainicjowany.")
-finally:
-    # Zamknięcie sesji przeglądarki
-    driver.quit()
+# Dodanie 1 dnia do dzisiejszej daty
+jutro = dzis + timedelta(days=1)
+
+# Znalezienie tej samej daty w następnym miesiącu
+if dzis.month == 12:
+    # Jeśli jest grudzień, przejdź do stycznia następnego roku
+    data_w_nast_miesiacu = datetime(dzis.year + 1, 1, jutro.day)
+else:
+    # Sprawdź, czy dodanie miesiąca nie spowoduje wyjścia poza zakres dla danego miesiąca
+    try:
+        data_w_nast_miesiacu = datetime(dzis.year, dzis.month + 1, jutro.day)
+    except ValueError:
+        # Jeśli dzień nie istnieje w następnym miesiącu, użyj ostatniego dnia następnego miesiąca
+        if dzis.month + 1 in [4, 6, 9, 11]:
+            # Miesiące z 30 dniami
+            data_w_nast_miesiacu = datetime(dzis.year, dzis.month + 1, 30)
+        elif dzis.month + 1 == 2:
+            # Luty, sprawdź rok przestępny
+            if (dzis.year + 1) % 4 == 0 and ((dzis.year + 1) % 100 != 0 or (dzis.year + 1) % 400 == 0):
+                data_w_nast_miesiacu = datetime(dzis.year, dzis.month + 1, 29)
+            else:
+                data_w_nast_miesiacu = datetime(dzis.year, dzis.month + 1, 28)
+        else:
+            # Miesiące z 31 dniami
+            data_w_nast_miesiacu = datetime(dzis.year, dzis.month + 1, 31)
+
+data_w_nast_miesiacu
