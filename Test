@@ -1,3 +1,25 @@
+Aby zaplanować uruchamianie skryptu `.bat` codziennie o 12:00 AM (północy) wyłącznie z poziomu PowerShell, możesz użyć polecenia `New-ScheduledTask` wraz z `Register-ScheduledTask`. Oto jak możesz to zrobić:
+
+### 1. Otwórz PowerShell jako Administrator
+
+- Kliknij prawym przyciskiem myszy na menu Start i wybierz „Windows PowerShell (Administrator)” lub „Terminal Windows (Administrator)”, jeśli używasz nowszej wersji Windows.
+
+### 2. Utwórz Zadanie Zaplanowane
+
+- Wpisz i uruchom następujące polecenia w PowerShell, dostosowując ścieżkę do twojego skryptu `.bat`:
+
+```powershell
+$Action = New-ScheduledTaskAction -Execute "C:\ścieżka_do_pliku\uruchom_skrypt.bat" 
+$Trigger = New-ScheduledTaskTrigger -Daily -At 12am
+Register-ScheduledTask -Action $Action -Trigger $Trigger -TaskName "UruchomienieSkryptuCodziennieOPolnocy" -Description "Uruchamia skrypt .bat codziennie o 12:00 AM"
+```
+
+Powyższy skrypt tworzy nowe zadanie zaplanowane, które uruchomi `uruchom_skrypt.bat` codziennie o północy. Oto, co robi każde polecenie:
+
+- `$Action = New-ScheduledTaskAction -Execute "C:\ścieżka_do_pliku\uruchom_skrypt.bat"` tworzy akcję, która określa, co ma być wykonane, czyli uruchomienie Twojego pliku `.bat`.
+- `$Trigger = New-ScheduledTaskTrigger -Daily -At 12am` tworzy wyzwalacz zadania, który określa, kiedy akcja ma zostać wykonana, czyli codziennie o 12:00 AM.
+- `Register-ScheduledTask` rejestruje zadanie z podaną akcją i wyzwalaczem w Zaplanowanych Zadaniach systemu Windows pod naz
+
 # Aby dodać jeden dzień do dzisiejszej daty i uzyskać odpowiednią datę w następnym miesiącu:
 
 # Pobieranie dzisiejszej daty
