@@ -1,33 +1,33 @@
-# Definicja ścieżki do pliku Excela
-$excelFilePath = "C:\Path\To\Your\File.xlsx"
+import win32com.client as win32
 
-# Tworzenie nowego obiektu aplikacji Excel
-$excel = New-Object -ComObject Excel.Application
+def refresh_excel_file(file_path):
+    # Otworzenie Excela
+    excel = win32.Dispatch('Excel.Application')
+    
+    # Opcjonalnie, ustawienie Excela jako niewidoczny
+    excel.Visible = False
+    
+    # Otworzenie pliku
+    workbook = excel.Workbooks.Open(file_path)
+    
+    # Odświeżanie wszystkich połączeń danych
+    for connection in workbook.Connections:
+        connection.Refresh()
+    
+    # Zapisanie zmian w pliku
+    workbook.Save()
+    
+    # Zamknięcie pliku
+    workbook.Close()
+    
+    # Wyłączenie Excela
+    excel.Quit()
+    
+    # Zwolnienie zasobów
+    del excel
 
-# Otworzenie pliku Excel
-$workbook = $excel.Workbooks.Open($excelFilePath)
+# Ścieżka do pliku Excel
+file_path = r'C:\Path\To\Your\File.xlsx'
 
-# Ustawienie widoczności Excela (opcjonalnie)
-$excel.Visible = $false
-
-# Odświeżanie wszystkich połączeń danych w arkuszu
-foreach ($connection in $workbook.Connections) {
-    $connection.Refresh()
-}
-
-# Czekanie, aż wszystkie odświeżenia się zakończą
-while ($excel.BackgroundQuery) { Start-Sleep 1 }
-
-# Zapisanie zmian w pliku
-$workbook.Save()
-
-# Zamknięcie pliku Excela
-$workbook.Close()
-
-# Wyłączenie aplikacji Excel
-$excel.Quit()
-
-# Zwalnianie zasobów COM
-[System.Runtime.Interopservices.Marshal]::ReleaseComObject($excel) | Out-Null
-[System.GC]::Collect()
-[System.GC]::WaitForPendingFinalizers()
+# Wywołanie funkcji
+refresh_excel_file(file_path)
