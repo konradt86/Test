@@ -1,3 +1,13 @@
+Private Sub Workbook_Open()
+    ThisWorkbook.RefreshAll
+    Application.Wait (Now + TimeValue("0:02:00"))  ' Czeka 2 minuty na zakończenie odświeżania
+    ThisWorkbook.Save
+    Application.Quit
+End Sub
+
+
+
+
 # Ścieżka do pliku Excel
 $filePath = "C:\ścieżka\do\pliku.xlsx"
 
