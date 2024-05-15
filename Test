@@ -1,54 +1,33 @@
-Aby zaplanować uruchamianie skryptu `.bat` codziennie o 12:00 AM (północy) wyłącznie z poziomu PowerShell, możesz użyć polecenia `New-ScheduledTask` wraz z `Register-ScheduledTask`. Oto jak możesz to zrobić:
+# Definicja ścieżki do pliku Excela
+$excelFilePath = "C:\Path\To\Your\File.xlsx"
 
-### 1. Otwórz PowerShell jako Administrator
+# Tworzenie nowego obiektu aplikacji Excel
+$excel = New-Object -ComObject Excel.Application
 
-- Kliknij prawym przyciskiem myszy na menu Start i wybierz „Windows PowerShell (Administrator)” lub „Terminal Windows (Administrator)”, jeśli używasz nowszej wersji Windows.
+# Otworzenie pliku Excel
+$workbook = $excel.Workbooks.Open($excelFilePath)
 
-### 2. Utwórz Zadanie Zaplanowane
+# Ustawienie widoczności Excela (opcjonalnie)
+$excel.Visible = $false
 
-- Wpisz i uruchom następujące polecenia w PowerShell, dostosowując ścieżkę do twojego skryptu `.bat`:
+# Odświeżanie wszystkich połączeń danych w arkuszu
+foreach ($connection in $workbook.Connections) {
+    $connection.Refresh()
+}
 
-```powershell
-$Action = New-ScheduledTaskAction -Execute "C:\ścieżka_do_pliku\uruchom_skrypt.bat" 
-$Trigger = New-ScheduledTaskTrigger -Daily -At 12am
-Register-ScheduledTask -Action $Action -Trigger $Trigger -TaskName "UruchomienieSkryptuCodziennieOPolnocy" -Description "Uruchamia skrypt .bat codziennie o 12:00 AM"
-```
+# Czekanie, aż wszystkie odświeżenia się zakończą
+while ($excel.BackgroundQuery) { Start-Sleep 1 }
 
-Powyższy skrypt tworzy nowe zadanie zaplanowane, które uruchomi `uruchom_skrypt.bat` codziennie o północy. Oto, co robi każde polecenie:
+# Zapisanie zmian w pliku
+$workbook.Save()
 
-- `$Action = New-ScheduledTaskAction -Execute "C:\ścieżka_do_pliku\uruchom_skrypt.bat"` tworzy akcję, która określa, co ma być wykonane, czyli uruchomienie Twojego pliku `.bat`.
-- `$Trigger = New-ScheduledTaskTrigger -Daily -At 12am` tworzy wyzwalacz zadania, który określa, kiedy akcja ma zostać wykonana, czyli codziennie o 12:00 AM.
-- `Register-ScheduledTask` rejestruje zadanie z podaną akcją i wyzwalaczem w Zaplanowanych Zadaniach systemu Windows pod naz
+# Zamknięcie pliku Excela
+$workbook.Close()
 
-# Aby dodać jeden dzień do dzisiejszej daty i uzyskać odpowiednią datę w następnym miesiącu:
+# Wyłączenie aplikacji Excel
+$excel.Quit()
 
-# Pobieranie dzisiejszej daty
-dzis = datetime.now()
-
-# Dodanie 1 dnia do dzisiejszej daty
-jutro = dzis + timedelta(days=1)
-
-# Znalezienie tej samej daty w następnym miesiącu
-if dzis.month == 12:
-    # Jeśli jest grudzień, przejdź do stycznia następnego roku
-    data_w_nast_miesiacu = datetime(dzis.year + 1, 1, jutro.day)
-else:
-    # Sprawdź, czy dodanie miesiąca nie spowoduje wyjścia poza zakres dla danego miesiąca
-    try:
-        data_w_nast_miesiacu = datetime(dzis.year, dzis.month + 1, jutro.day)
-    except ValueError:
-        # Jeśli dzień nie istnieje w następnym miesiącu, użyj ostatniego dnia następnego miesiąca
-        if dzis.month + 1 in [4, 6, 9, 11]:
-            # Miesiące z 30 dniami
-            data_w_nast_miesiacu = datetime(dzis.year, dzis.month + 1, 30)
-        elif dzis.month + 1 == 2:
-            # Luty, sprawdź rok przestępny
-            if (dzis.year + 1) % 4 == 0 and ((dzis.year + 1) % 100 != 0 or (dzis.year + 1) % 400 == 0):
-                data_w_nast_miesiacu = datetime(dzis.year, dzis.month + 1, 29)
-            else:
-                data_w_nast_miesiacu = datetime(dzis.year, dzis.month + 1, 28)
-        else:
-            # Miesiące z 31 dniami
-            data_w_nast_miesiacu = datetime(dzis.year, dzis.month + 1, 31)
-
-data_w_nast_miesiacu
+# Zwalnianie zasobów COM
+[System.Runtime.Interopservices.Marshal]::ReleaseComObject($excel) | Out-Null
+[System.GC]::Collect()
+[System.GC]::WaitForPendingFinalizers()
