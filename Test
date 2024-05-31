@@ -1,53 +1,69 @@
-Private Sub Workbook_Open()
-    ThisWorkbook.RefreshAll
-    Application.Wait (Now + TimeValue("0:02:00"))  ' Czeka 2 minuty na zakończenie odświeżania
-    ThisWorkbook.Save
-    Application.Quit
-End Sub
+Sure, I'll start translating the text paragraph by paragraph.
 
+**First Image:**
 
+**Monthly: nport and liquidity**
 
+Nport:
 
-# Ścieżka do pliku Excel
-$filePath = "C:\ścieżka\do\pliku.xlsx"
+After processing 18 copies, the main job for nport is done. The main job contains standard reports which we check.
 
-# Uruchomienie Excela z plikiem
-$excelProcess = Start-Process "EXCEL.EXE" $filePath -PassThru
+Then we copy:
 
-# Czekaj na zakończenie procesu Excela (zamknięty przez VBA)
-Wait-Process -Id $excelProcess.Id
+1. Liquidity monthly reporting: We check the standard reports pdf and gr.
+2. Nport Supporting Dashboards: We check if they generated.
+3. Guardian Liquidity Drilldown Overrides: We check the same way.
 
+Then we send sign-off.
 
-import win32com.client as win32
+Toronto is responsible for sending all reports to the client 18f, nport, and liquidity.
 
-def refresh_excel_file(file_path):
-    # Otworzenie Excela
-    excel = win32.Dispatch('Excel.Application')
-    
-    # Opcjonalnie, ustawienie Excela jako niewidoczny
-    excel.Visible = False
-    
-    # Otworzenie pliku
-    workbook = excel.Workbooks.Open(file_path)
-    
-    # Odświeżanie wszystkich połączeń danych
-    for connection in workbook.Connections:
-        connection.Refresh()
-    
-    # Zapisanie zmian w pliku
-    workbook.Save()
-    
-    # Zamknięcie pliku
-    workbook.Close()
-    
-    # Wyłączenie Excela
-    excel.Quit()
-    
-    # Zwolnienie zasobów
-    del excel
+BBH
 
-# Ścieżka do pliku Excel
-file_path = r'C:\Path\To\Your\File.xlsx'
+The client has two liquidity regulations, ESMA. The two regulations are weekly and monthly.
 
-# Wywołanie funkcji
-refresh_excel_file(file_path)
+The deadline for them is weekly 3 pm Friday for processing and shipment by 5 pm.
+
+The monthly bd process and shipment is bd 5.
+
+The client service is in Dublin. BBH only has external funds delivered to:
+
+\\truviewfileshare\TruView\Clients\BBH\Miscellaneous\SourceFiles
+
+We place the file here: \\share.truview.exch\ange\DJ-PROD\DA2\BBH\Source3\BBH\inbound and then copied to the input.
+
+These main jobs are for ESMA and liquidity. When the reports are delivered, please do the standard checks on pdf and gr and then check from top to headers if the reports have been sent without any errors.
+
+**Second Image:**
+
+This will be the training for BBH and Guardian clients.
+
+Guardian has liquidity regulations, 18f and nport.
+
+Monthly nport and liquidity reports should be delivered to BD2 by 3sh3, our deadline is BD3 every day by 12 pm from 3sh3, for us sign off 3 pm.
+
+All reports are sent to the client through the Toronto team.
+
+(open First aid)
+
+We have one main job for daily processing of the 18f guardian derivative full run.
+
+The regulation uses simulations as below:
+
+The data for all regulations are from FDR, internally only for:
+
+VP_509
+VP_514
+VP_515
+
+Delivered and mapped to automatically read from:
+
+\\truviewfileshare\TruView\DJ-PROD\DA2\Guardian\Sources\Citi_Guardian\inbound and then copied to input.
+
+Daily only 18f reports are delivered, which are saved in \\truviewfileshare\TruView\Clients\Guardian\ClientReports\18f
+
+(open pdf 18f)
+
+The report is only one for FDU and LDU. Please open the report and global rec and do standard checks. Then send the sign-off.
+
+The 18f report is sent by Keisha.
