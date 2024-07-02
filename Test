@@ -1,69 +1,45 @@
-Sure, I'll start translating the text paragraph by paragraph.
+Oto przykładowa funkcja w Pythonie, która po podaniu ścieżki (`Path`) i wzorca nazwy pliku (np. `test*.xlsx`) znajdzie najnowszy plik w folderze i go otworzy:
 
-**First Image:**
+```python
+import os
+import glob
+import pandas as pd
 
-**Monthly: nport and liquidity**
+def open_latest_file(path, pattern):
+    # Skonstruuj pełną ścieżkę do plików na podstawie podanej ścieżki i wzorca
+    full_pattern = os.path.join(path, pattern)
+    
+    # Znajdź wszystkie pliki pasujące do wzorca
+    files = glob.glob(full_pattern)
+    
+    if not files:
+        raise FileNotFoundError(f"No files matching pattern {pattern} found in {path}")
+    
+    # Znajdź najnowszy plik
+    latest_file = max(files, key=os.path.getmtime)
+    
+    # Otwórz najnowszy plik za pomocą pandas
+    df = pd.read_excel(latest_file)
+    
+    print(f"Opened file: {latest_file}")
+    
+    return df
 
-Nport:
+# Przykład użycia
+path = "/ścieżka/do/folderu"
+pattern = "test*.xlsx"
 
-After processing 18 copies, the main job for nport is done. The main job contains standard reports which we check.
+df = open_latest_file(path, pattern)
+print(df)
+```
 
-Then we copy:
+### Opis działania funkcji:
+1. Funkcja `open_latest_file` przyjmuje dwa argumenty: `path` (ścieżka do folderu) i `pattern` (wzorzec nazwy pliku, np. `test*.xlsx`).
+2. Konstrukcja pełnej ścieżki do plików na podstawie podanej ścieżki i wzorca za pomocą `os.path.join`.
+3. Znajdowanie wszystkich plików pasujących do wzorca za pomocą `glob.glob`.
+4. Sprawdzenie, czy znaleziono jakieś pliki. Jeśli nie, funkcja rzuca wyjątek `FileNotFoundError`.
+5. Znajdowanie najnowszego pliku na podstawie czasu modyfikacji (`os.path.getmtime`).
+6. Otwieranie najnowszego pliku za pomocą `pandas.read_excel` i zwracanie jego zawartości jako DataFrame.
 
-1. Liquidity monthly reporting: We check the standard reports pdf and gr.
-2. Nport Supporting Dashboards: We check if they generated.
-3. Guardian Liquidity Drilldown Overrides: We check the same way.
-
-Then we send sign-off.
-
-Toronto is responsible for sending all reports to the client 18f, nport, and liquidity.
-
-BBH
-
-The client has two liquidity regulations, ESMA. The two regulations are weekly and monthly.
-
-The deadline for them is weekly 3 pm Friday for processing and shipment by 5 pm.
-
-The monthly bd process and shipment is bd 5.
-
-The client service is in Dublin. BBH only has external funds delivered to:
-
-\\truviewfileshare\TruView\Clients\BBH\Miscellaneous\SourceFiles
-
-We place the file here: \\share.truview.exch\ange\DJ-PROD\DA2\BBH\Source3\BBH\inbound and then copied to the input.
-
-These main jobs are for ESMA and liquidity. When the reports are delivered, please do the standard checks on pdf and gr and then check from top to headers if the reports have been sent without any errors.
-
-**Second Image:**
-
-This will be the training for BBH and Guardian clients.
-
-Guardian has liquidity regulations, 18f and nport.
-
-Monthly nport and liquidity reports should be delivered to BD2 by 3sh3, our deadline is BD3 every day by 12 pm from 3sh3, for us sign off 3 pm.
-
-All reports are sent to the client through the Toronto team.
-
-(open First aid)
-
-We have one main job for daily processing of the 18f guardian derivative full run.
-
-The regulation uses simulations as below:
-
-The data for all regulations are from FDR, internally only for:
-
-VP_509
-VP_514
-VP_515
-
-Delivered and mapped to automatically read from:
-
-\\truviewfileshare\TruView\DJ-PROD\DA2\Guardian\Sources\Citi_Guardian\inbound and then copied to input.
-
-Daily only 18f reports are delivered, which are saved in \\truviewfileshare\TruView\Clients\Guardian\ClientReports\18f
-
-(open pdf 18f)
-
-The report is only one for FDU and LDU. Please open the report and global rec and do standard checks. Then send the sign-off.
-
-The 18f report is sent by Keisha.
+### Przykład użycia:
+Podając odpowiednią ścieżkę do folderu i wzorzec nazwy pliku, funkcja znajdzie najnowszy plik pasujący do wzorca i otworzy go, zwracając jego zawartość jako DataFrame.
