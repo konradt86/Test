@@ -1,11 +1,12 @@
-Oto przykładowa funkcja w Pythonie, która po podaniu ścieżki (`Path`) i wzorca nazwy pliku (np. `test*.xlsx`) znajdzie najnowszy plik w folderze i go otworzy:
+Oto zmodyfikowana wersja funkcji, która wyszukuje pliki z nazwą zawierającą "V1", "V2" itd., znajdując najnowszą wersję pliku w folderze i otwierając ją:
 
 ```python
 import os
 import glob
+import re
 import pandas as pd
 
-def open_latest_file(path, pattern):
+def open_latest_version_file(path, pattern):
     # Skonstruuj pełną ścieżkę do plików na podstawie podanej ścieżki i wzorca
     full_pattern = os.path.join(path, pattern)
     
@@ -15,8 +16,16 @@ def open_latest_file(path, pattern):
     if not files:
         raise FileNotFoundError(f"No files matching pattern {pattern} found in {path}")
     
-    # Znajdź najnowszy plik
-    latest_file = max(files, key=os.path.getmtime)
+    # Funkcja pomocnicza do wyciągnięcia numeru wersji z nazwy pliku
+    def extract_version(file_name):
+        match = re.search(r'V(\d+)', file_name)
+        if match:
+            return int(match.group(1))
+        else:
+            return -1
+    
+    # Znajdź najnowszy plik na podstawie numeru wersji
+    latest_file = max(files, key=lambda f: (extract_version(f), os.path.getmtime(f)))
     
     # Otwórz najnowszy plik za pomocą pandas
     df = pd.read_excel(latest_file)
@@ -29,17 +38,17 @@ def open_latest_file(path, pattern):
 path = "/ścieżka/do/folderu"
 pattern = "test*.xlsx"
 
-df = open_latest_file(path, pattern)
+df = open_latest_version_file(path, pattern)
 print(df)
 ```
 
 ### Opis działania funkcji:
-1. Funkcja `open_latest_file` przyjmuje dwa argumenty: `path` (ścieżka do folderu) i `pattern` (wzorzec nazwy pliku, np. `test*.xlsx`).
-2. Konstrukcja pełnej ścieżki do plików na podstawie podanej ścieżki i wzorca za pomocą `os.path.join`.
-3. Znajdowanie wszystkich plików pasujących do wzorca za pomocą `glob.glob`.
-4. Sprawdzenie, czy znaleziono jakieś pliki. Jeśli nie, funkcja rzuca wyjątek `FileNotFoundError`.
-5. Znajdowanie najnowszego pliku na podstawie czasu modyfikacji (`os.path.getmtime`).
+1. Konstrukcja pełnej ścieżki do plików na podstawie podanej ścieżki i wzorca za pomocą `os.path.join`.
+2. Znajdowanie wszystkich plików pasujących do wzorca za pomocą `glob.glob`.
+3. Sprawdzenie, czy znaleziono jakieś pliki. Jeśli nie, funkcja rzuca wyjątek `FileNotFoundError`.
+4. Zdefiniowanie funkcji pomocniczej `extract_version`, która wyciąga numer wersji z nazwy pliku. Wykorzystuje ona wyrażenie regularne do wyszukania wzorca "V" oraz cyfry, która następuje po nim.
+5. Znalezienie najnowszego pliku na podstawie numeru wersji oraz czasu modyfikacji. Używa ona funkcji `max` z kluczem będącym krotką zawierającą numer wersji i czas modyfikacji pliku.
 6. Otwieranie najnowszego pliku za pomocą `pandas.read_excel` i zwracanie jego zawartości jako DataFrame.
 
 ### Przykład użycia:
-Podając odpowiednią ścieżkę do folderu i wzorzec nazwy pliku, funkcja znajdzie najnowszy plik pasujący do wzorca i otworzy go, zwracając jego zawartość jako DataFrame.
+Podając odpowiednią ścieżkę do folderu i wzorzec nazwy pliku, funkcja znajdzie najnowszy plik wersji pasujący do wzorca i otworzy go, zwracając jego zawartość jako DataFrame.
