@@ -22,3 +22,28 @@ for i, sheetname in enumerate(wb.sheetnames[:6]):
 
     if not found:
         print("  Nie znaleziono 'spread'.")
+
+
+
+import pandas as pd
+
+# Ścieżka do pliku Excel
+excel_path = 'plik.xlsx'  # <- podmień na swoją nazwę pliku
+
+# Odczytaj listę arkuszy
+sheet_names = pd.ExcelFile(excel_path).sheet_names[:6]
+
+# Przejdź przez pierwsze 6 arkuszy
+for sheet in sheet_names:
+    df = pd.read_excel(excel_path, sheet_name=sheet, dtype=str)  # wczytaj dane jako tekst
+    print(f"\nArkusz: {sheet}")
+
+    found = False
+    for index, row in df.iterrows():
+        if row.astype(str).str.contains('spread', case=False, na=False).any():
+            found = True
+            print(f"  Wiersz {index + 2}: {row.values}")
+            # +2 bo pandas index startuje od 0, a nagłówek to pierwszy wiersz w Excelu
+
+    if not found:
+        print("  Nie znaleziono 'spread'.")
