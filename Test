@@ -2,64 +2,62 @@ import os
 import pandas as pd
 from datetime import datetime
 
-def big_reports():
-    # === Konfiguracja ===
+def big_reports(manual_date_str: str):
+    # --- KONFIGURACJA ---
     funds = ["K1A6", "K1A7", "K1A8", "ZQ56"]
+    manual_date = datetime.strptime(manual_date_str, "%d/%m/%Y")  # np. "30/01/2024"
 
-    # Zakładamy, że plik main.xlsx zawiera datę w komórce L1 (czyli [0, 11])
-    wb_main = pd.read_excel("main.xlsx", header=None)
-    effective_date = pd.to_datetime(wb_main.iloc[0, 11])
-
-    # Tworzenie ścieżek
-    base_path = os.path.abspath("main.xlsx")
-    root = base_path.split(os.sep)[0] + os.sep
-    main_path = os.path.join(root, r"truview\Clients\Admin\MMFfunds\MMFfunds_SSGA")
-    report_path = os.path.join(main_path, effective_date.strftime("%Y%m%d"), "Reports")
+    # Główna ścieżka (zakładamy, że ten skrypt jest w tym samym folderze co folder truview)
+    root_path = os.getcwd()  # lub podmień na ścieżkę stałą
+    main_path = os.path.join(root_path, r"truview\Clients\Admin\MMFfunds\MMFfunds_SSGA")
+    report_path = os.path.join(main_path, manual_date.strftime("%Y%m%d"), "Reports")
     r_file_path = os.path.join(report_path, "results_load_all.csv")
 
-    # Wczytaj plik R i wyczyść dane (poza nagłówkiem)
-    if os.path.exists(r_file_path):
-        df_r = pd.read_csv(r_file_path)
-        df_r = df_r.iloc[0:0]  # usuń wszystkie dane (zostaw nagłówki)
-    else:
-        df_r = pd.DataFrame()
+    # Inicjalizacja pustego DataFrame
+    df_r = pd.DataFrame()
 
     # === Przetwarzanie każdego funduszu ===
     for fund in funds:
         fund_filename = f"SSgA_RDW_Summary_2.0_Big_{fund}.xls"
         fund_path = os.path.join(report_path, fund_filename)
 
+        if not os.path.exists(fund_path):
+            print(f"⚠️  Plik nie istnieje: {fund_path}")
+            continue
+
         try:
-            # Wczytaj wszystkie arkusze
-            xl = pd.read_excel(fund_path, sheet_name=None, header=None)
+            # Wczytaj wszystkie arkusze (bez nagłówków)
+            xl = pd.read_excel(fund_path, sheet_name=None, header=None, engine="openpyxl")
         except Exception as e:
-            print(f"Nie można wczytać pliku {fund_path}: {e}")
+            print(f"❌ Błąd przy wczytywaniu {fund_path}: {e}")
             continue
 
         fund_data = []
 
-        # Iteracja po arkuszach 1 do 6 (zero-based index w pandas)
-        for sheet_num, (sheet_name, sheet_df) in enumerate(list(xl.items())[:6], start=1):
+        # Przetwarzaj pierwsze 6 arkuszy
+        for sheet_index, (sheet_name, sheet_df) in enumerate(list(xl.items())[:6]):
             try:
-                val = sheet_df.iloc[13, 1]  # Komórka B14 (zero-based)
-                if abs(val) < 0.13:
-                    data = sheet_df.iloc[14:35, 1].tolist()  # B15:B35
+                threshold_value = sheet_df.iloc[13, 1]  # B14 (zero-based)
+                if abs(threshold_value) < 0.13:
+                    values = sheet_df.iloc[14:35, 1].tolist()  # B15:B35
                 else:
-                    data = sheet_df.iloc[10:34, 1].tolist()  # B11:B34
+                    values = sheet_df.iloc[10:34, 1].tolist()  # B11:B34
 
-                fund_data.append(data)
+                fund_data.append(values)
             except Exception as e:
-                print(f"Błąd w arkuszu {sheet_name}: {e}")
-                continue
+                print(f"⚠️ Błąd w arkuszu {sheet_name}: {e}")
+                fund_data.append([])
 
-        # Dodaj dane do DataFrame
+        # Zapisz dane do df_r
         max_len = max(len(col) for col in fund_data) if fund_data else 0
         for i, col in enumerate(fund_data):
             col_name = f"{fund}_S{i+1}"
             df_r[col_name] = pd.Series(col, index=range(max_len))
 
-    # Zapisz plik wynikowy
+    # Zapisz do CSV
+    os.makedirs(report_path, exist_ok=True)
     df_r.to_csv(r_file_path, index=False)
-    print(f"Gotowe! Plik zapisany: {r_file_path}")
+    print(f"✅ Gotowe! Zapisano plik: {r_file_path}")
 
-big_reports()
+# Przykładowe wywołanie
+big_reports("30/01/2024")
