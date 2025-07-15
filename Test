@@ -47,3 +47,49 @@ for sheet in sheet_names:
 
     if not found:
         print("  Nie znaleziono 'spread'.")
+
+
+
+
+
+import pandas as pd
+
+# Ścieżka do pliku Excel
+excel_path = 'plik.xlsx'
+
+# Inicjalizacja pustego DataFrame z wymaganymi kolumnami
+result = pd.DataFrame(columns=['fund', 'shock', 'multiple', 'rdm1', 'rdm2'])
+
+# Wczytanie listy arkuszy
+xls = pd.ExcelFile(excel_path)
+sheet_names = xls.sheet_names[:6]  # tylko pierwsze 6 arkuszy
+
+# Iteracja po arkuszach
+for sheet in sheet_names:
+    df = pd.read_excel(xls, sheet_name=sheet, dtype=str)  # wczytaj jako tekst
+
+    for row_idx in range(df.shape[0]):
+        for col_idx in range(df.shape[1]):
+            cell_value = df.iat[row_idx, col_idx]
+
+            if isinstance(cell_value, str) and 'spread' in cell_value.lower():
+                # Zbieramy wszystkie wartości PONIŻEJ tej komórki w tej samej kolumnie
+                below_values = df.iloc[row_idx+1:, col_idx].dropna().tolist()
+
+                # Tworzymy tymczasowy DataFrame z tymi wartościami w kolumnie "multiple"
+                temp_df = pd.DataFrame({'multiple': below_values})
+                temp_df['fund'] = ''
+                temp_df['shock'] = ''
+                temp_df['rdm1'] = ''
+                temp_df['rdm2'] = ''
+
+                # Przestawiamy kolumny do właściwej kolejności
+                temp_df = temp_df[['fund', 'shock', 'multiple', 'rdm1', 'rdm2']]
+
+                # Dodajemy do wyniku końcowego
+                result = pd.concat([result, temp_df], ignore_index=True)
+
+# Zapisz wynik do CSV (opcjonalnie)
+result.to_csv('wynik_result.csv', index=False)
+
+print("Utworzono DataFrame 'result' z danymi poniżej 'spread'.")
